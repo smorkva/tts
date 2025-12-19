@@ -16,8 +16,10 @@ API:
 """
 
 import io
+import wave
 from pathlib import Path
 
+import numpy as np
 import torch
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -101,7 +103,15 @@ async def synthesize(request: SynthesizeRequest):
 
     # Convert to WAV bytes
     buffer = io.BytesIO()
-    tts_model.synthesizer.save_wav(wav, buffer, sample_rate=22050)
+    wav_np = np.array(wav, dtype=np.float32)
+    wav_int16 = (wav_np * 32767).astype(np.int16)
+
+    with wave.open(buffer, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(22050)
+        wf.writeframes(wav_int16.tobytes())
+
     buffer.seek(0)
 
     return StreamingResponse(
