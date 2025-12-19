@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git
+
+- Do not add "Co-Authored-By" lines to commits
+- Do not add "Generated with Claude Code" lines to commits
+
 ## Project Overview
 
 Fine-tuning Coqui XTTS-v2 model for Russian speech synthesis (TTS).
