@@ -17,6 +17,7 @@ API:
 
 import io
 import wave
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import numpy as np
@@ -30,8 +31,6 @@ from TTS.api import TTS
 DATA_DIR = Path(__file__).parent.parent / "data"
 MODEL_NAME = "tts_models/multilingual/multi-dataset/xtts_v2"
 
-app = FastAPI(title="XTTS-v2 TTS Server")
-
 # Global model instance
 tts_model: TTS = None
 
@@ -42,32 +41,41 @@ class SynthesizeRequest(BaseModel):
     language: str = "ru"
 
 
-@app.on_event("startup")
-async def load_model():
-    """Load TTS model on startup."""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load model on startup."""
     global tts_model
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Loading XTTS-v2 model on {device}...")
+    print(f"Loading XTTS-v2 model on {device}...", flush=True)
 
     tts_model = TTS(MODEL_NAME, gpu=False)
     tts_model.to(device)
 
-    print(f"Model loaded successfully on {device}")
+    print(f"Model loaded successfully on {device}", flush=True)
+    yield
+    # Cleanup on shutdown
+    tts_model = None
+
+
+app = FastAPI(title="XTTS-v2 TTS Server", lifespan=lifespan)
 
 
 @app.get("/health")
-async def health():
+def health():
     """Health check endpoint."""
+    device = None
+    if tts_model and tts_model.synthesizer:
+        device = str(next(tts_model.synthesizer.tts_model.parameters()).device)
     return {
         "status": "ok",
         "model_loaded": tts_model is not None,
-        "device": str(next(tts_model.synthesizer.tts_model.parameters()).device) if tts_model else None
+        "device": device
     }
 
 
 @app.get("/speakers")
-async def list_speakers():
+def list_speakers():
     """List available speaker samples."""
     speakers = []
     for ext in ["*.wav", "*.mp3", "*.opus", "*.flac"]:
@@ -76,7 +84,7 @@ async def list_speakers():
 
 
 @app.post("/synthesize")
-async def synthesize(request: SynthesizeRequest):
+def synthesize(request: SynthesizeRequest):
     """Synthesize speech from text."""
     if tts_model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
