@@ -10,6 +10,7 @@ Usage:
 import argparse
 from pathlib import Path
 
+import torch
 from TTS.api import TTS
 
 
@@ -43,8 +44,9 @@ def main():
         print(f"Error: Speaker file not found: {args.speaker}")
         return 1
 
-    print(f"Loading XTTS-v2 model...")
-    tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2", gpu=True)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Loading XTTS-v2 model on {device}...")
+    tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2", gpu=False).to(device)
 
     print(f"Synthesizing: {args.text[:50]}...")
     tts.tts_to_file(
