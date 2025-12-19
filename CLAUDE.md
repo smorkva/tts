@@ -60,6 +60,20 @@ python scripts/prepare_audio.py input.mp3 -s 10 -d 15
 python scripts/prepare_audio.py input.mp3 -o data/speaker.wav
 ```
 
+### synthesize.py
+Synthesize speech using XTTS-v2 voice cloning.
+
+```bash
+# Basic usage
+python scripts/synthesize.py "Привет, как дела?"
+
+# Custom speaker and output
+python scripts/synthesize.py "Текст для синтеза" -s data/speaker.wav -o outputs/result.wav
+
+# Different language
+python scripts/synthesize.py "Hello world" -l en -o outputs/english.wav
+```
+
 ## Project Structure
 
 ```
@@ -67,7 +81,8 @@ tts/
 ├── data/           # Training datasets and speaker samples
 ├── configs/        # Training configurations
 ├── scripts/        # Data preprocessing and utility scripts
-│   └── prepare_audio.py
+│   ├── prepare_audio.py
+│   └── synthesize.py
 ├── checkpoints/    # Model checkpoints
 └── outputs/        # Generated audio samples
 ```

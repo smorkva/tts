@@ -1,0 +1,18 @@
+# Audio files
+data/*.wav
+data/*.mp3
+data/*.m4a
+
+# Outputs
+outputs/
+
+# Model checkpoints
+checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS
+.DS_Store
